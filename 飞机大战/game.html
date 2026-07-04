@@ -168,7 +168,7 @@
             <button class="btn" onclick="startGame()">开始游戏</button>
             <div class="controls-info">
                 操作说明：<br>
-                鼠标/触摸移动控制飞机<br>
+                ↑↓←→ 或 WASD 控制飞机移动<br>
                 自动射击<br>
                 空格键暂停
             </div>
@@ -563,6 +563,9 @@
                 
                 // 绘制背景
                 drawBackground(timestamp);
+                
+                // 更新玩家位置（键盘控制）
+                updatePlayerPosition();
                 
                 // 更新和绘制玩家
                 updatePlayer(timestamp);
@@ -992,33 +995,45 @@
             difficulty = Math.floor(score / 1000) + 1;
         }
         
-        // 鼠标控制
-        canvas.addEventListener('mousemove', (e) => {
-            if (!gameRunning || gamePaused) return;
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            player.x = (e.clientX - rect.left) * scaleX;
-            player.x = Math.max(35, Math.min(445, player.x));
-        });
+        // 键盘状态
+        const keys = {};
         
-        // 触摸控制
-        canvas.addEventListener('touchmove', (e) => {
-            if (!gameRunning || gamePaused) return;
-            e.preventDefault();
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const touch = e.touches[0];
-            player.x = (touch.clientX - rect.left) * scaleX;
-            player.x = Math.max(35, Math.min(445, player.x));
-        });
-        
-        // 暂停功能
+        // 键盘控制
         document.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+            
+            // 暂停功能
             if (e.code === 'Space' && gameRunning) {
                 gamePaused = !gamePaused;
                 document.getElementById('pauseOverlay').classList.toggle('show', gamePaused);
             }
         });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+        });
+        
+        // 根据键盘状态更新玩家位置
+        function updatePlayerPosition() {
+            if (!gameRunning || gamePaused) return;
+            
+            if (keys['ArrowLeft'] || keys['KeyA']) {
+                player.x -= player.speed;
+            }
+            if (keys['ArrowRight'] || keys['KeyD']) {
+                player.x += player.speed;
+            }
+            if (keys['ArrowUp'] || keys['KeyW']) {
+                player.y -= player.speed;
+            }
+            if (keys['ArrowDown'] || keys['KeyS']) {
+                player.y += player.speed;
+            }
+            
+            // 边界限制
+            player.x = Math.max(35, Math.min(445, player.x));
+            player.y = Math.max(35, Math.min(665, player.y));
+        }
         
         // 初始化
         init();
